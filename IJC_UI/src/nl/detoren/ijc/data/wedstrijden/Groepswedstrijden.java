@@ -24,6 +24,7 @@ import java.util.ArrayList;
 public class Groepswedstrijden {
 
     private int niveau;
+    private int fuzzymatrix[][];
     private ArrayList<Serie> series;
     private ArrayList<Wedstrijd> triowedstrijden;
 
@@ -60,6 +61,14 @@ public class Groepswedstrijden {
         triowedstrijden.add(w);
     }
 
+    public int[][] getFuzzyMatrix() {
+        return fuzzymatrix;
+    }
+
+    public void setFuzzyMatrix(int fuzzymatrix[][]) {
+        this.fuzzymatrix = fuzzymatrix;
+    }
+    
     public void addSerie(Serie s) {
         series.add(s);
     }

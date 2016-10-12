@@ -126,12 +126,12 @@ public class WedstrijdschemaDialoog extends JDialog {
         //spelersTabel.setTransferHandler(new TS());
         leftScrollPane.setViewportView(spelersTabel);
         Utils.fixedComponentSize(leftScrollPane, 340, 500);
-        Utils.fixedColumSize(spelersTabel.getColumnModel().getColumn(0), 20);
-        Utils.fixedColumSize(spelersTabel.getColumnModel().getColumn(1), 160);
-        Utils.fixedColumSize(spelersTabel.getColumnModel().getColumn(2), 40);
-        Utils.fixedColumSize(spelersTabel.getColumnModel().getColumn(3), 40);
-        Utils.fixedColumSize(spelersTabel.getColumnModel().getColumn(4), 40);
-        Utils.fixedColumSize(spelersTabel.getColumnModel().getColumn(5), 40);
+        Utils.fixedColumnSize(spelersTabel.getColumnModel().getColumn(0), 20);
+        Utils.fixedColumnSize(spelersTabel.getColumnModel().getColumn(1), 160);
+        Utils.fixedColumnSize(spelersTabel.getColumnModel().getColumn(2), 40);
+        Utils.fixedColumnSize(spelersTabel.getColumnModel().getColumn(3), 40);
+        Utils.fixedColumnSize(spelersTabel.getColumnModel().getColumn(4), 40);
+        Utils.fixedColumnSize(spelersTabel.getColumnModel().getColumn(5), 40);
 
         panel.add(leftScrollPane, BorderLayout.LINE_START);
 
@@ -342,11 +342,11 @@ public class WedstrijdschemaDialoog extends JDialog {
             }
         });
 
-        Utils.fixedColumSize(serieTabel[i].getColumnModel().getColumn(0), 30);
-        Utils.fixedColumSize(serieTabel[i].getColumnModel().getColumn(1), 130);
-        Utils.fixedColumSize(serieTabel[i].getColumnModel().getColumn(2), 15);
-        Utils.fixedColumSize(serieTabel[i].getColumnModel().getColumn(3), 30);
-        Utils.fixedColumSize(serieTabel[i].getColumnModel().getColumn(4), 130);
+        Utils.fixedColumnSize(serieTabel[i].getColumnModel().getColumn(0), 30);
+        Utils.fixedColumnSize(serieTabel[i].getColumnModel().getColumn(1), 130);
+        Utils.fixedColumnSize(serieTabel[i].getColumnModel().getColumn(2), 15);
+        Utils.fixedColumnSize(serieTabel[i].getColumnModel().getColumn(3), 30);
+        Utils.fixedColumnSize(serieTabel[i].getColumnModel().getColumn(4), 130);
 
     }
 }

@@ -401,27 +401,27 @@ public class Hoofdscherm extends JFrame {
 			fixedComponentSize(updatedSpelersTabel[i], 320, 500);
 			fixedComponentSize(wedstrijdenTabel[i], 320, 500);
 			// Fix the size of the displayed tables
-			fixedColumSize(aanwezigheidsTabel[i].getColumnModel().getColumn(0), 40);
-			fixedColumSize(aanwezigheidsTabel[i].getColumnModel().getColumn(1), 30);
-			fixedColumSize(aanwezigheidsTabel[i].getColumnModel().getColumn(2), 160);
-			fixedColumSize(aanwezigheidsTabel[i].getColumnModel().getColumn(3), 40);
-			fixedColumSize(aanwezigheidsTabel[i].getColumnModel().getColumn(4), 50);
+			fixedColumnSize(aanwezigheidsTabel[i].getColumnModel().getColumn(0), 40);
+			fixedColumnSize(aanwezigheidsTabel[i].getColumnModel().getColumn(1), 30);
+			fixedColumnSize(aanwezigheidsTabel[i].getColumnModel().getColumn(2), 160);
+			fixedColumnSize(aanwezigheidsTabel[i].getColumnModel().getColumn(3), 40);
+			fixedColumnSize(aanwezigheidsTabel[i].getColumnModel().getColumn(4), 50);
 
-			fixedColumSize(wedstrijdspelersTabel[i].getColumnModel().getColumn(0), 20);
-			fixedColumSize(wedstrijdspelersTabel[i].getColumnModel().getColumn(1), 170);
-			fixedColumSize(wedstrijdspelersTabel[i].getColumnModel().getColumn(2), 30);
-			fixedColumSize(wedstrijdspelersTabel[i].getColumnModel().getColumn(3), 90);
+			fixedColumnSize(wedstrijdspelersTabel[i].getColumnModel().getColumn(0), 20);
+			fixedColumnSize(wedstrijdspelersTabel[i].getColumnModel().getColumn(1), 170);
+			fixedColumnSize(wedstrijdspelersTabel[i].getColumnModel().getColumn(2), 30);
+			fixedColumnSize(wedstrijdspelersTabel[i].getColumnModel().getColumn(3), 90);
 
-			fixedColumSize(updatedSpelersTabel[i].getColumnModel().getColumn(0), 20);
-			fixedColumSize(updatedSpelersTabel[i].getColumnModel().getColumn(1), 160);
-			fixedColumSize(updatedSpelersTabel[i].getColumnModel().getColumn(2), 40);
-			fixedColumSize(updatedSpelersTabel[i].getColumnModel().getColumn(3), 40);
+			fixedColumnSize(updatedSpelersTabel[i].getColumnModel().getColumn(0), 20);
+			fixedColumnSize(updatedSpelersTabel[i].getColumnModel().getColumn(1), 160);
+			fixedColumnSize(updatedSpelersTabel[i].getColumnModel().getColumn(2), 40);
+			fixedColumnSize(updatedSpelersTabel[i].getColumnModel().getColumn(3), 40);
 
-			fixedColumSize(wedstrijdenTabel[i].getColumnModel().getColumn(0), 35);
-			fixedColumSize(wedstrijdenTabel[i].getColumnModel().getColumn(1), 130);
-			fixedColumSize(wedstrijdenTabel[i].getColumnModel().getColumn(2), 10);
-			fixedColumSize(wedstrijdenTabel[i].getColumnModel().getColumn(3), 130);
-			fixedColumSize(wedstrijdenTabel[i].getColumnModel().getColumn(4), 30);
+			fixedColumnSize(wedstrijdenTabel[i].getColumnModel().getColumn(0), 35);
+			fixedColumnSize(wedstrijdenTabel[i].getColumnModel().getColumn(1), 130);
+			fixedColumnSize(wedstrijdenTabel[i].getColumnModel().getColumn(2), 10);
+			fixedColumnSize(wedstrijdenTabel[i].getColumnModel().getColumn(3), 130);
+			fixedColumnSize(wedstrijdenTabel[i].getColumnModel().getColumn(4), 30);
 		}
 	}
 
@@ -429,8 +429,8 @@ public class Hoofdscherm extends JFrame {
 		Utils.fixedComponentSize(c, width, height);
 	}
 
-	private void fixedColumSize(TableColumn c, int width) {
-		Utils.fixedColumSize(c, width);
+	private void fixedColumnSize(TableColumn c, int width) {
+		Utils.fixedColumnSize(c, width);
 	}
 
 	protected JPanel makePanel() {

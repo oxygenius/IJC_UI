@@ -191,6 +191,7 @@ public class IJCController {
         	status.wedstrijdgroepen = new GroepenIndeler().maakGroepsindeling(status.groepen);
             if (status.automatisch) {
                 maakWedstrijden();
+                logger.log(Level.INFO, "Maak Wedstrijden");
             }
         }
     }

@@ -1,5 +1,6 @@
 /**
- * Copyright (C) 2016 Leo van der Meulen
+ * Copyright (C) 2016 Leo van der Meulen, Lars Dam
+ * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation version 3.0
@@ -12,6 +13,7 @@
  * Problemen in deze code:
  * - TODO Bij oneven aantal spelers in de hoogste groep wordt er een volledig trio ingepland -> Handmatig aanpassen   
  * - TODO Afmelden van speler die is doorgeschoven, werkt nog niet. -> Workaround: Delete in afwezigheidstabel
+ * - TODO Parametriseren van Fuzzy waarden
  */
 package nl.detoren.ijc.ui.control;
 
@@ -26,6 +28,8 @@ import nl.detoren.ijc.data.wedstrijden.Groepswedstrijden;
 import nl.detoren.ijc.data.wedstrijden.Serie;
 import nl.detoren.ijc.data.wedstrijden.Wedstrijd;
 import nl.detoren.ijc.data.wedstrijden.Wedstrijden;
+import nl.detoren.ijc.ui.util.Utils;
+import nl.detoren.ijc.ui.util.minimizetriagonal;
 
 /**
  * Deelt de groepen in op basis van aanwezigheid en methode. Mogelijke methoden zijn 
@@ -269,7 +273,7 @@ public class GroepenIndeler {
     }
 
     /**
-     Maak het westrijdschema voor een avond
+     Maak het wedstrijdschema voor een avond
      @param groepen
      @param periode
      @param ronde
@@ -280,7 +284,7 @@ public class GroepenIndeler {
     	int ronde = groepen.getRonde();
     	logger.log(Level.INFO, "Maken wedstrijden voor periode " + periode + " ronde " + ronde);    		
         Wedstrijden wedstrijden = new Wedstrijden();        
-        System.out.println("-------------------------------------------------------------");
+        System.out.println("--------------------------------------------------------------");
         for (Groep groep : groepen.getGroepen()) {
             System.out.println(groep.toPrintableString());
         }
@@ -360,46 +364,126 @@ public class GroepenIndeler {
 		    }
 		    // plan 1 round and duplicate players
 		}
+		// Introductie Fuzzy Logic
+		//
 		
-		boolean[] gepland = new boolean[groep.getSpelers().size()];
-		int aantalSpelers = groep.getSpelers().size();
-		ArrayList<Integer> trio = new ArrayList<>();
-		if (groep.getAantalSpelers() % 2 != 0) {
-	    	logger.log(Level.INFO, "Maken van een trio vanwege oneven aantal spelers");    		
-		    // Bij oneven aantal spelers wordt een trio gemaakt.
-		    trio = maakTrioWedstrijden(groep);
-		    aantalSpelers -= 3;
-		    Speler sid1 = groep.getSpelerByID(trio.get(0).intValue());
-		    Speler sid2 = groep.getSpelerByID(trio.get(1).intValue());
-		    Speler sid3 = groep.getSpelerByID(trio.get(2).intValue());
-	    	logger.log(Level.INFO, "Spelers in trio " + sid1.getInitialen() + " " + sid2.getInitialen() + " " + sid3.getInitialen());    		
-		    gws.addTrioWedstrijd(new Wedstrijd(997, sid1, sid2, 0));
-		    gws.addTrioWedstrijd(new Wedstrijd(998, sid2, sid3, 0));
-		    gws.addTrioWedstrijd(new Wedstrijd(999, sid1, sid3, 0));
-		}
-		for (int i = 0; i < speelrondes; ++i) {
-		    int minverschil = bepaalMinimaalVerschil(groep, periode, ronde, i + 1);
-		    for (int j = 0; j < gepland.length; ++j) {
-		        gepland[j] = false;
-		    }
-		    for (Integer sid : trio) {
-		        // -1 omdat speler ID één versprongen is tov array nummer
-		        gepland[sid.intValue() - 1] = true;
-		    }
-
-		    Serie serie = null;
-		    int ignoreTgns = 0;
-		    while ((serie == null) && (ignoreTgns <= 5)) {
-		        serie = maakSerie(groep, gepland, aantalSpelers, minverschil, ignoreTgns, ronde);
-		        ignoreTgns++;
-		    }
-
-			if (serie != null) {
-				gws.addSerie(serie);
-				groep = updateSpelers(groep, serie);
-				// update gegevens tegenstanders en witvoorkeur
+		// Loop pas gebruiken als ook update is toegevoegd
+		//for (int i = 0; i < speelrondes; ++i) {
+			gws.setFuzzyMatrix(MaakFuzzyMatrix(wedstrijdgroep, 1));
+			logger.log(Level.INFO, "FuzzyMatrix created.");
+			int order[] = new int[wedstrijdgroep.getAantalSpelers()];
+			for (int k = 0;k<wedstrijdgroep.getAantalSpelers();k++){
+				order[k]=k;
 			}
+	        System.out.print("Trigonalization of Matrix\n");
+	        minimizetriagonal triagonal = new minimizetriagonal();
+	        triagonal.setA(gws.getFuzzyMatrix());
+	        triagonal.setOrder(order);
+	        triagonal.setIterations(10);
+	        triagonal.Iterminimizetriagonal();
+	        order = minimizetriagonal.getOrder();
+	        int[][] tri = minimizetriagonal.getA();
+	        System.out.print("Deze groep " + wedstrijdgroep.getNaam() + " heeft " + tri.length + " spelers.\n");
+	        int trioloc = minimizetriagonal.gettrio(tri);
+	        if (trioloc == 0) {
+	        	System.out.print("Geen trio in deze groep.\n");
+	        } else { 
+		        System.out.print("Trio rond Speler op plaats " + (trioloc+1) + ".\n");
+		    }
+	        System.out.print("Minimize matrix is\n");
+	        Utils.printMatrix(tri);
+	        System.out.print("Order vector is\n");
+	        Utils.printMatrix(order);
+	        Serie s = new Serie();
+	        int wedstrijdnr = 1;
+	        if (trioloc == 0) {
+	        	for (int k = 0;k<=wedstrijdgroep.getAantalSpelers()-1;k+=2){
+					Speler s1 = wedstrijdgroep.getSpelerByID(order[k]+1); // Speler wit
+					Speler s2 = wedstrijdgroep.getSpelerByID(order[k+1]+1); // Speler zwart
+	        	   	Wedstrijd w = new Wedstrijd(wedstrijdnr, s1, s2, 0);
+	        		s.addWedstrijd(w, true);
+	        		wedstrijdnr++;
+		        	System.out.printf("Wedstrijd met spelers op plaats %d en %d \n",order[k], order[k+1] );
+				}	        	
+	        } else {
+	        	for (int k = 0;k<trioloc-2;k+=2){
+					Speler s1 = wedstrijdgroep.getSpelerByID(order[k]+1); // Speler wit
+					Speler s2 = wedstrijdgroep.getSpelerByID(order[k+1]+1); // Speler zwart
+	        	   	Wedstrijd w = new Wedstrijd(wedstrijdnr, s1, s2, 0);
+	        		s.addWedstrijd(w, true);
+	        		wedstrijdnr++;
+		        	System.out.printf("Wedstrijd met spelers op plaats %d en %d \n", order[k], order[k+1] );
+				}
+	        	for (int k = trioloc+2;k<=wedstrijdgroep.getAantalSpelers()-1;k+=2){
+					Speler s1 = wedstrijdgroep.getSpelerByID(order[k]+1); // Speler wit
+					Speler s2 = wedstrijdgroep.getSpelerByID(order[k+1]+1); // Speler zwart
+					Wedstrijd w = new Wedstrijd(wedstrijdnr, s1, s2, 0);
+					s.addWedstrijd(w, true);
+		        	System.out.printf("Wedstrijd met spelers op plaats %d en %d \n", order[k], order[k+1] );
+					wedstrijdnr++;
+	        	}
+	        	// trio
+			    gws.addTrioWedstrijd(new Wedstrijd(wedstrijdnr, wedstrijdgroep.getSpelerByID(order[trioloc-1]+1), wedstrijdgroep.getSpelerByID(order[trioloc]+1), 0));
+	        	System.out.printf("Wedstrijd uit trio met spelers op plaats %d en %d \n", order[trioloc-1], order[trioloc]);
+			    wedstrijdnr++;
+			    gws.addTrioWedstrijd(new Wedstrijd(wedstrijdnr, wedstrijdgroep.getSpelerByID(order[trioloc]+1), wedstrijdgroep.getSpelerByID(order[trioloc+1]+1), 0));
+	        	System.out.printf("Wedstrijd uit trio met spelers op plaats %d en %d \n", order[trioloc], order[trioloc+1]);
+			    wedstrijdnr++;
+			    gws.addTrioWedstrijd(new Wedstrijd(wedstrijdnr, wedstrijdgroep.getSpelerByID(order[trioloc-1]+1), wedstrijdgroep.getSpelerByID(order[trioloc+1]+1), 0));
+	        	System.out.printf("Wedstrijd uit trio met spelers op plaats %d en %d \n", order[trioloc-1], order[trioloc+1]);
+			    wedstrijdnr++;
+	        	// Einde trio
+	        }
+		//}
+		if (s!= null) {
+			s.renumber(); // Hernummer wedstrijden.
+			gws.addSerie(s);
+			logger.log(Level.INFO, "Voeg Serie toe");
+			groep = updateSpelers(groep, s);
+			logger.log(Level.INFO, "Update Spelers");
+			// update gegevens tegenstanders en witvoorkeur
 		}
+		
+		
+//		boolean[] gepland = new boolean[groep.getSpelers().size()];
+//		int aantalSpelers = groep.getSpelers().size();
+//		ArrayList<Integer> trio = new ArrayList<>();
+//		if (groep.getAantalSpelers() % 2 != 0) {
+//	    	logger.log(Level.INFO, "Maken van een trio vanwege oneven aantal spelers");    		
+//		    // Bij oneven aantal spelers wordt een trio gemaakt.
+//		    trio = maakTrioWedstrijden(groep);
+//		    aantalSpelers -= 3;
+//		    Speler sid1 = groep.getSpelerByID(trio.get(0).intValue());
+//		    Speler sid2 = groep.getSpelerByID(trio.get(1).intValue());
+//		    Speler sid3 = groep.getSpelerByID(trio.get(2).intValue());
+//	    	logger.log(Level.INFO, "Spelers in trio " + sid1.getInitialen() + " " + sid2.getInitialen() + " " + sid3.getInitialen());    		
+//		    gws.addTrioWedstrijd(new Wedstrijd(997, sid1, sid2, 0));
+//		    gws.addTrioWedstrijd(new Wedstrijd(998, sid2, sid3, 0));
+//		    gws.addTrioWedstrijd(new Wedstrijd(999, sid1, sid3, 0));
+//		}
+//		for (int i = 0; i < speelrondes; ++i) {
+//		    int minverschil = bepaalMinimaalVerschil(groep, periode, ronde, i + 1);
+//		    for (int j = 0; j < gepland.length; ++j) {
+//		        gepland[j] = false;
+//		    }
+//		    for (Integer sid : trio) {
+//		        // -1 omdat speler ID één versprongen is tov array nummer
+//		        gepland[sid.intValue() - 1] = true;
+//		    }
+//
+//		    Serie serie = null;
+//		    int ignoreTgns = 0;
+//		    while ((serie == null) && (ignoreTgns <= 5)) {
+//		        serie = maakSerie(groep, gepland, aantalSpelers, minverschil, ignoreTgns, ronde);
+//		        ignoreTgns++;
+//		    }
+//
+//			if (serie != null) {
+//				gws.addSerie(serie);
+//				groep = updateSpelers(groep, serie);
+//				// update gegevens tegenstanders en witvoorkeur
+//			}
+//		}
 		return gws;
 	}
 
@@ -446,7 +530,7 @@ public class GroepenIndeler {
                     Serie s = planSerie(serie, spelers, gepland, teplannen - 2, minverschil, ignoreTgn, niveau, diepte + 1, ronde);
                     if (s != null) {
                         Wedstrijd w = new Wedstrijd(diepte, s1, s2, 0);
-                        s.addWestrijd(w, true);
+                        s.addWedstrijd(w, true);
                         return s;
                     }
                     gepland[doorgeschovenID] = false;
@@ -471,7 +555,7 @@ public class GroepenIndeler {
                     Serie s = planSerie(serie, spelers, gepland, teplannen - 2, minverschil, ignoreTgn, niveau, diepte + 1, ronde);
                     if (s != null) {
                         Wedstrijd w = new Wedstrijd(s1.getId() * 100 + s2.getId(), s1, s2, 0);
-                        s.addWestrijd(w, true);
+                        s.addWedstrijd(w, true);
                         return s;
                     }
                     gepland[plannenID] = false;
@@ -534,6 +618,281 @@ public class GroepenIndeler {
         }
         return -1;
     }
+
+    
+    public int[][] MaakFuzzyMatrix(Groep wedstrijdgroep, int serie) {
+    	/**
+    	 *  FuzzyMatrix wordt gebruik voor het snel vaststellen van beste match als tegenstander door middel van Fuzzy Logic.
+    	 *  Hiertoe worden per voorwaarde waaraan voldaan moet worden een matrix opgesteld.
+    	 *  Per voorwaarde wordt bepaald hoe zwaar het weegt als niet aan de voorwaarde wordt voldaan.
+    	 *  
+    	 *  Voorwaarde 1: Niet tegen dezelfde tegenstander speler als in de laatste 4 partijen.
+    	 *  Hiertoe wordt vastgesteld dat een tegenstander in één van de laatste twee ronden 70 weegt.
+    	 *  Een tegenstander waar al tegen gestreden is in de twee-na-laatste of drie-na-laatste partij weegt 30.
+    	 *  Een partij langer geleden is gewenst en weegt 0.
+    	 *  
+    	 *  Voorwaarde 2: Geen speler die een veel hogere of lagere ranking heeft.
+    	 *  Hiertoe wordt vastgesteld dat een tegenstander 1 ranking  hoger/lager 0 weegt.
+    	 *  Een tegenstander 2 rankings hoger/lager weegt 10.
+    	 *  Een tegenstander 3 rankings hoger/lager weegt 20.
+    	 *  Een tegenstander 4 rankings hoger/lager weegt 30.
+    	 *  Een tegenstander 5 rankings hoger/lager weegt 50.
+    	 *  Een tegenstander 6 rankings hoger/lager weegt 80.
+    	 *  Een tegenstander 7 of meer rankings hoger/lager weegt 100.
+    	 *  
+    	 *  Voorwaarde 3: Iedere tegenstander moet zoveel mogelijk evenveel met wit als zwart spelen
+    	 *  Hiertoe wordt een weging vastgesteld volgens het volgens matrix.
+    	 *  
+    	 *  			0		z1		z2		w1		w2
+    	 *  			0		-50		-100	50		100
+    	 *  0	0		20		35		50		35		50
+    	 * z1	-50		35		60		75		10		25
+    	 * z2	-100	50		75		100		25		0
+    	 * w1	50		35		10		25		60		75
+    	 * w2	100		50		25		0		75		100
+    	 * 
+    	 * Indien het om doorschuiven gaat en het om de eerste serie gaat is er nog een 4e voorwaarde.
+    	 * De doorschuivende speler moet tegen iemand van de hogere groep zijn.
+    	 * 
+    	 * Een speler van de eigen groep weegt 100
+    	 * Een speler van de hogere groep weegt 0
+    	 * 
+    	 * Indien het om doorschuiven gaat en het om de tweede serie gaat is er een andere 4e voorwaarde.
+    	 * De dooschuivende speler speelt bij voorkeur tegen iemand van zijn eigen groep.
+    	 * 
+    	 * Een speler van de eigen groep weegt 0
+    	 * Een speler van de hogere groep weegt 40
+    	 * 
+    	 * De vierkante matrices met dimensie (aantal spelers,aantal spelers) worden bij elkaar opgesteld.
+    	 * Dit genereert een matrix met integers. Deze wordt hierna geoptimaliseerd door 
+    	 * de diagonaal (is al nul) en de sub- en superdiagonaal te minimaliseren. Hiertoe wordt een iteratie uitgevoerd van 
+    	 * algorithme minimizetrigonal 
+ 
+    	 */
+        int matrix1[][]  = new int[wedstrijdgroep.getAantalSpelers()][wedstrijdgroep.getAantalSpelers()];
+        int matrix2[][]  = new int[wedstrijdgroep.getAantalSpelers()][wedstrijdgroep.getAantalSpelers()];
+        int matrix3[][]  = new int[wedstrijdgroep.getAantalSpelers()][wedstrijdgroep.getAantalSpelers()];
+        int matrix4[][]  = new int[wedstrijdgroep.getAantalSpelers()][wedstrijdgroep.getAantalSpelers()];
+        int matrix[][]  = new int[wedstrijdgroep.getAantalSpelers()][wedstrijdgroep.getAantalSpelers()];
+        int i,j,weging=0;
+        int tegenstanders[] = new int [4];
+        // matrix1
+        System.out.print("Initializing Matrix1\n");
+        for (i=1; i<=wedstrijdgroep.getAantalSpelers();i++){
+        	for (j=1;j<=wedstrijdgroep.getAantalSpelers();j++){
+        		//logger.log(Level.INFO, "Speler 1 ID : " + wedstrijdgroep.getSpelerByID(i));
+        		//logger.log(Level.INFO, "Speler 2 ID : " + wedstrijdgroep.getSpelerByID(j));
+            	weging=0;
+        		tegenstanders = wedstrijdgroep.getSpelerByID(i).getGespeeldTegen(wedstrijdgroep.getSpelerByID(j));
+        		for (int k = 0; k <4; k++){
+            		if ((tegenstanders[k] >0) && (tegenstanders[k] <3)) {
+            			weging+=70;
+                		System.out.print(tegenstanders[k] + " ronden eerder al gespeeld tegen " + wedstrijdgroep.getSpelerByID(j).getNaam() +"\n");
+            		}
+            		if ((tegenstanders[k] >2) && (tegenstanders[k] <5)) {
+            			weging+=30;
+                		System.out.print(tegenstanders[k] + " ronden eerder al gespeeld tegen " + wedstrijdgroep.getSpelerByID(1).getNaam() +"\n");
+            		}
+        			
+        		}
+            	matrix1[i-1][j-1]=weging;
+        	}
+        }
+    	Utils.printMatrix(matrix1);
+        // matrix2
+        System.out.print("Initializing Matrix2\n");
+        for (i=1; i<=wedstrijdgroep.getAantalSpelers();i++){
+        	for (j=1;j<=wedstrijdgroep.getAantalSpelers();j++){
+        		switch (Math.abs(j-i)) {
+        		case 0:
+        		case 1:
+        			matrix2[i-1][j-1]=0;
+        			break;
+        		case 2:
+        			matrix2[i-1][j-1]=10;
+        			break;
+        		case 3:
+        			matrix2[i-1][j-1]=20;
+        			break;
+        		case 4:
+        			matrix2[i-1][j-1]=30;
+        			break;
+        		case 5:
+        			matrix2[i-1][j-1]=50;
+        			break;
+        		case 6:
+        			matrix2[i-1][j-1]=80;
+        			break;
+        		default:
+        			matrix2[i-1][j-1]=100;
+        			break;
+        		}
+        	}
+    	}
+    	Utils.printMatrix(matrix2);
+    	// matrix 3
+    	System.out.print("Initializing Matrix3\n");
+        for (i=1; i<=wedstrijdgroep.getAantalSpelers();i++){
+        	int witv1 = (int) wedstrijdgroep.getSpelerByID(i).getWitvoorkeur();
+        	for (j=1;j<=wedstrijdgroep.getAantalSpelers();j++){
+        		int witv2 = (int) wedstrijdgroep.getSpelerByID(j).getWitvoorkeur();
+        		if (i==j) {
+        			matrix3[i-1][j-1] = 0;
+        		} else {
+        			switch (witv1) {
+        			case -2:
+        				switch (witv2) {
+        				case -2:
+        					matrix3[i-1][j-1]=100;
+        					break;
+        				case -1:
+        					matrix3[i-1][j-1]=75;
+        					break;
+        				case 0:
+        					matrix3[i-1][j-1]=50;
+        					break;
+        				case 1:
+        					matrix3[i-1][j-1]=25;
+        					break;
+        				case 2:
+        					matrix3[i-1][j-1]=0;
+        					break;
+        				}
+        				break;
+        			case -1:
+        				switch (witv2) {
+        				case -2:
+        					matrix3[i-1][j-1]=75;
+        					break;
+        				case -1:
+        					matrix3[i-1][j-1]=60;
+        					break;
+        				case 0:
+        					matrix3[i-1][j-1]=35;
+        					break;
+        				case 1:
+        					matrix3[i-1][j-1]=10;
+        					break;
+        				case 2:
+        					matrix3[i-1][j-1]=25;
+        					break;
+        				}        			
+        				break;
+        			case 0:
+        				switch (witv2) {
+        				case -2:
+        					matrix3[i-1][j-1]=50;
+        					break;
+        				case -1:
+        					matrix3[i-1][j-1]=25;
+        					break;
+        				case 0:
+        					matrix3[i-1][j-1]=20;
+        					break;
+        				case 1:
+        					matrix3[i-1][j-1]=35;        				
+        					break;
+        				case 2:
+        					matrix3[i-1][j-1]=50;
+        					break;
+        				}
+        				break;
+        			case 1:
+        				switch (witv2) {
+        				case -2:
+        					matrix3[i-1][j-1]=25;
+        					break;
+        				case -1:
+        					matrix3[i-1][j-1]=10;
+        					break;
+        				case 0:
+        					matrix3[i-1][j-1]=35;
+        					break;
+        				case 1:
+        					matrix3[i-1][j-1]=60;
+        					break;
+        				case 2:
+        					matrix3[i-1][j-1]=75;
+        					break;
+        				}
+        				break;
+        			case 2:
+        				switch (witv2) {
+        				case -2:
+        					matrix3[i-1][j-1]=0;
+        					break;
+        				case -1:
+        					matrix3[i-1][j-1]=25;
+        					break;
+        				case 0:
+        					matrix3[i-1][j-1]=50;
+        					break;
+        				case 1:
+        					matrix3[i-1][j-1]=75;
+        					break;
+        				case 2:
+        					matrix3[i-1][j-1]=100;
+        					break;
+        				}
+        				break;
+        			};
+        		}
+        	}
+        }
+        Utils.printMatrix(matrix3);
+    	// matrix 4
+        System.out.print("Initializing Matrix4\n");
+        for (i=1; i<=wedstrijdgroep.getAantalSpelers();i++){
+        	for (j=1;j<=wedstrijdgroep.getAantalSpelers();j++){
+        		if (i == j) {
+        			matrix4[i-1][j-1] = 0;
+        		} else{
+        			switch (serie) {
+        			case 1:
+        				if (wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(i)) && wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(j))) {
+        					matrix4[i-1][j-1] = 100;
+        				} else{
+            				if (wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(i)) && !(wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(j)))) {
+                				matrix4[i-1][j-1] = 0;
+            				}
+        				}
+        				if (!wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(i)) && wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(j))) {
+            				matrix4[i-1][j-1] = 0;
+        				} else{
+            				if (!wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(i)) && !wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(j))) {
+                				matrix4[i-1][j-1] = 20;
+            				}
+        				}
+        				break;
+        			case 2:
+        				if (wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(i)) && wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(j))) {
+            				matrix4[i-1][j-1] = 0;
+        				} else{
+            				if (wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(i)) && wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(j))) {
+            					matrix4[i-1][j-1] = 40;
+            				}
+        				}
+        				if (!wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(i)) && wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(j))) {
+            				matrix4[i-1][j-1] = 40;
+        				} else{
+            				if (!wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(i)) && !wedstrijdgroep.getSpelersMetAnderNiveau().contains(wedstrijdgroep.getSpelerByID(j))) {
+                				matrix4[i-1][j-1] = 20;
+            				}
+        				}
+        				break;
+        			}
+        		}
+        	}
+        }
+        Utils.printMatrix(matrix4);
+        matrix=Utils.add2DArrays(matrix1,matrix2);
+        matrix=Utils.add2DArrays(matrix,matrix3);
+        matrix=Utils.add2DArrays(matrix,matrix4);
+        System.out.print("Output Matrix\n");
+        Utils.printMatrix(matrix);
+        return matrix;
+    }
+
 
     /**
      * Update de volgende gegevens van een speler: - Witvoorkeur - Tegenstanders

@@ -48,11 +48,11 @@ public class Serie {
         this.wedstrijden = wedstrijden;
     }
 
-    public void addWestrijd(Wedstrijd w) {
+    public void addWedstrijd(Wedstrijd w) {
         wedstrijden.add(w);
     }
 
-    public void addWestrijd(Wedstrijd w, boolean vooraan) {
+    public void addWedstrijd(Wedstrijd w, boolean vooraan) {
         if (vooraan) {
             wedstrijden.add(0, w);
         } else {
@@ -89,5 +89,15 @@ public class Serie {
             }
         }
         return null;
+    }
+
+    /**
+     * Hernummer alle wedstrijden in de serie als 1,2,3...
+     */
+    public void renumber() {
+    	int nummer = 1;
+    	for (Wedstrijd w : wedstrijden) {
+    		w.setId(nummer++);
+    	}
     }
 }
