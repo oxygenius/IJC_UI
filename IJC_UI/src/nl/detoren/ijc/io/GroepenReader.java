@@ -243,7 +243,7 @@ public class GroepenReader {
             index++;
         }
         index -= 1;
-        return getIntegerDeel(data[index], 18, 2);		// Ronde staat in kolom 19,19 van deze regel
+        return getIntegerDeel(data[index], 19, 2);		// Ronde staat in kolom 19,19 van deze regel
     }
 
     /**

@@ -183,7 +183,7 @@ public class IJCController {
      * Zet de groepen van aanwezige spelers om naar de wedstrijdgroepen. In de
      * wedstrijdgroepen zitten alleen de aanwezige spelers aangevuld met de
      * eventuele doorschuivers.
-     * Deze wedstrijdgroepen worden vervoglens gebruikt om de wedstrijden in te delen
+     * Deze wedstrijdgroepen worden vervolgens gebruikt om de wedstrijden in te delen
      */
     public void maakGroepsindeling() {
         synchronized (this) {

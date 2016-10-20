@@ -17,6 +17,9 @@ package nl.detoren.ijc.data.wedstrijden;
 
 import java.util.ArrayList;
 
+//import nl.detoren.ijc.data.groepen.op;
+//import nl.detoren.ijc.data.groepen.rond;
+
 /**
  *
  * @author Leo van der Meulen
@@ -25,6 +28,7 @@ public class Groepswedstrijden {
 
     private int niveau;
     private int fuzzymatrix[][];
+	private static int[] trioids;
     private ArrayList<Serie> series;
     private ArrayList<Wedstrijd> triowedstrijden;
 
@@ -68,7 +72,15 @@ public class Groepswedstrijden {
     public void setFuzzyMatrix(int fuzzymatrix[][]) {
         this.fuzzymatrix = fuzzymatrix;
     }
-    
+
+    public int[] getTrioids() {
+        return trioids;
+    }
+
+    public void setTrioids(int[] trioids) {
+        Groepswedstrijden.trioids= trioids;
+    }
+
     public void addSerie(Serie s) {
         series.add(s);
     }
@@ -88,4 +100,5 @@ public class Groepswedstrijden {
         lst.addAll(triowedstrijden);
         return lst;
     }
+    
 }

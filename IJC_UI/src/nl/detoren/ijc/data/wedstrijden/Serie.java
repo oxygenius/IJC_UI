@@ -73,7 +73,8 @@ public class Serie {
 
     public Wedstrijd getWedstrijdVoorSpeler(Speler speler) {
         for (Wedstrijd w : wedstrijden) {
-            if ((w.getWit() == speler) || (w.getZwart() == speler)) {
+            if ((w.getWit().gelijkAan(speler) || (w.getZwart().gelijkAan(speler)))) {
+            	
                 return w;
             }
         }
@@ -82,9 +83,9 @@ public class Serie {
 
     public Speler getTegenstanderVoorSpeler(Speler speler) {
         for (Wedstrijd w : wedstrijden) {
-            if ((w.getWit() == speler)) {
+            if ((w.getWit().gelijkAan(speler))) {
                 return w.getZwart();
-            } else if (w.getZwart() == speler) {
+            } else if (w.getZwart().gelijkAan(speler)) {
                 return w.getWit();
             }
         }
@@ -94,8 +95,8 @@ public class Serie {
     /**
      * Hernummer alle wedstrijden in de serie als 1,2,3...
      */
-    public void renumber() {
-    	int nummer = 1;
+    public void renumber(int serie) {
+    	int nummer = serie*wedstrijden.size()+1;
     	for (Wedstrijd w : wedstrijden) {
     		w.setId(nummer++);
     	}

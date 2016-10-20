@@ -1,4 +1,5 @@
 /**
+
  * Copyright (C) 2016 Leo van der Meulen
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -202,7 +203,7 @@ public class Speler implements Cloneable {
         }
         return result;
     }
-
+    
     public String toPrintableString() {
         //16. Iva  Binnendijk                (Iv)* w1 ( 296)   RM Ja SW **    17
         String result;
@@ -283,7 +284,7 @@ public class Speler implements Cloneable {
     }
 
     /**
-     * Is er eerder tegen meegegeven speler gepseeld?
+     * Is er eerder tegen meegegeven speler gespeeld?
      *
      * @param speler2 Speler die gecontroleerd word
      * @return True als er in één van de laatste vier wedstrijden tegen deze speler gespeeld is

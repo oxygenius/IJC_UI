@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+//import nl.detoren.ijc.data.wedstrijden.op;
+//import nl.detoren.ijc.data.wedstrijden.rond;
+
 /**
  * Deze klasse bevat alle gegevens van een groep met een specifiek niveau
  * Vastgelegd is het niveau van de groep en de spelers waaruit de groep bestaat
@@ -179,4 +182,11 @@ public class Groep {
     	    }
     	});
     }
+    
+    public void SpelersNamenopvolgorde(int[][] tri, int indexrow) {    	
+    	for (int i=0;i<tri.length;i++) {
+    		System.out.print("Speler ID " + spelers.get(tri[i][indexrow-1]-1).getId() + " met naam " + spelers.get(tri[i][indexrow-1]-1).getNaam() + " staat op plaats " + i + ".\n");
+    	}
+    }
+
 }
